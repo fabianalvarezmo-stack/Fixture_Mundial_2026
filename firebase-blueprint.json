@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "Tournament": {
+      "title": "Tournament",
+      "description": "Represents the Copa Mundial 2026 simulation results state.",
+      "type": "object",
+      "properties": {
+        "matches": {
+          "type": "array",
+          "description": "List of 104 matches and their scores/penalties."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of when the tournament was saved."
+        }
+      },
+      "required": [
+        "matches",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/tournaments/{id}": {
+      "schema": "Tournament",
+      "description": "Stores simulation save states."
+    }
+  }
+}
