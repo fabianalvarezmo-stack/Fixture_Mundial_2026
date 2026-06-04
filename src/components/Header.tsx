@@ -37,7 +37,7 @@ export default function Header({ onReset, onSave, isSaving = false }: HeaderProp
             onClick={onSave}
             disabled={isSaving}
             className="flex-1 sm:flex-initial px-4.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider active:scale-95 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/10 hover:shadow-amber-500/25 disabled:opacity-50"
-            title="Guardar todos los resultados actuales en la base de datos de Firebase"
+            title="Guardar todos los resultados actuales en el almacenamiento local de este navegador"
           >
             {isSaving ? (
               <span className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />

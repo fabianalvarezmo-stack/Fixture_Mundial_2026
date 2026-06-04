@@ -21,11 +21,6 @@ import {
 
 import { Match, Standing, ThirdPlaceStanding } from "./types";
 import { LayoutDashboard, Award, Trophy, Star, ChevronUp, CloudLightning } from "lucide-react";
-import { 
-  testConnection, 
-  loadTournamentFromCloud, 
-  saveTournamentToCloud 
-} from "./firebase";
 
 const LOCAL_STORAGE_KEY = "wc_2026_simulator_state_v2";
 
@@ -34,9 +29,8 @@ export default function App() {
   const [selectedGroup, setSelectedGroup] = useState<string>("A");
   const [activeTab, setActiveTab] = useState<"groups" | "thirds" | "knockout" | "stats">("groups");
 
-  // Firebase integration status and modal popups state
+  // Local storage save status and modal popups state
   const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [isCloudLoading, setIsCloudLoading] = useState<boolean>(false);
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
     type: "success_save",
@@ -44,9 +38,8 @@ export default function App() {
     message: ""
   });
 
-  // 1. Hybrid Initial Loading: LocalStorage instantly, Firebase Cloud dynamically in background
+  // 1. Local Browser Storage Initial Loading
   useEffect(() => {
-    // Phase A: Offline instant load
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     let loadedMatches: Match[] = [];
     if (saved) {
@@ -74,26 +67,6 @@ export default function App() {
       setMatches(fullyCascaded);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(fullyCascaded));
     }
-
-    // Phase B: Firestore async sync
-    const syncWithFirebase = async () => {
-      setIsCloudLoading(true);
-      await testConnection();
-      try {
-        const cloudMatches = await loadTournamentFromCloud();
-        if (cloudMatches && Array.isArray(cloudMatches) && cloudMatches.length === 104) {
-          setMatches(cloudMatches);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudMatches));
-          console.log("Firebase Cloud Synchronized successfully on start.");
-        }
-      } catch (error) {
-        console.error("Startup Firebase download omitted/error (rules block or offline is fine):", error);
-      } finally {
-        setIsCloudLoading(false);
-      }
-    };
-
-    syncWithFirebase();
   }, []);
 
   // 2. Local calculations derived dynamically from current match scores
@@ -159,37 +132,26 @@ export default function App() {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(fullyCascaded));
   };
 
-  // 5. Firebase Cloud Save Handler (Saves scores input by user)
+  // 5. Local Browser Save Handler (Saves scores input by user to localStorage)
   const handleSaveTournament = () => {
     setModal({
       isOpen: true,
       type: "confirm_save",
       title: "Guardar Resultados",
-      message: "¿Deseas guardar permanentemente todos los resultados ingresados en la base de datos de Firebase?",
-      onConfirm: async () => {
+      message: "¿Deseas guardar permanentemente todos los resultados ingresados en el almacenamiento de tu navegador (Local Storage)?",
+      onConfirm: () => {
         setModal(prev => ({ ...prev, isOpen: false }));
         setIsSaving(true);
-        try {
-          await saveTournamentToCloud(matches);
-          // Show beautiful success popup
+        setTimeout(() => {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(matches));
+          setIsSaving(false);
           setModal({
             isOpen: true,
             type: "success_save",
-            title: "¡Guardado Exitoso!",
-            message: "Los resultados se sincronizaron perfectamente en la base de datos de Firebase Firestore en la nube."
+            title: "¡Guardado Local Exitoso!",
+            message: "Todos tus resultados han sido guardados con éxito en el almacenamiento local de este navegador. Estarán disponibles automáticamente en tus próximas visitas."
           });
-        } catch (err) {
-          console.error("Error saving matches:", err);
-          setModal({
-            isOpen: true,
-            type: "error",
-            title: "Error de Guardado",
-            message: "No se pudieron registrar las puntuaciones en Firebase. Comprueba las reglas de acceso o tu red.",
-            errorMessage: err instanceof Error ? err.message : String(err)
-          });
-        } finally {
-          setIsSaving(false);
-        }
+        }, 500);
       }
     });
   };
@@ -256,13 +218,11 @@ export default function App() {
         isSaving={isSaving}
       />
 
-      {/* Cloud loading indicator bar */}
-      {isCloudLoading && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-500 text-center py-2 text-xs font-mono tracking-widest flex items-center justify-center gap-2 animate-pulse">
-          <CloudLightning className="w-3.5 h-3.5 animate-bounce" />
-          <span>SINCRONIZANDO DATOS CON FIREBASE...</span>
-        </div>
-      )}
+      {/* Local storage banner */}
+      <div className="bg-slate-900/60 border-b border-slate-800/80 text-slate-400 text-center py-1.5 text-[10px] font-mono tracking-widest flex items-center justify-center gap-1.5 opacity-90 select-none">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        <span>MODO WEB SIN CONEXIÓN • RESULTADOS ALMACENADOS LOCALMENTE EN SU NAVEGADOR</span>
+      </div>
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-8 animate-fadeIn">

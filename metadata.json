@@ -1,6 +1,8 @@
 {
-  "name": "Copa Mundial 2026 - Simulador & Control",
+  "name": "Remix: Copa Mundial 2026 - Simulador \u0026 Control",
   "description": "Explora y simula los resultados de la Copa Mundial de la FIFA 2026. Calcula posiciones de grupos, mejores terceros y simula cada ronda de eliminación hasta la Gran Final.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
